@@ -2,7 +2,7 @@ import pyautogui
 import subprocess
 import time
 import os
-from api_handlers import SmsServiceHandler # заменить на фабрику
+from api_handlers import SmsServiceHandler, HandlerException # заменить на фабрику
 
 
 class Telegram():
@@ -56,12 +56,16 @@ class Reger():
         telegram.check_proxy()
 
         if self.sms_service.check_reg_possibility():
-            operation_id, phone = self.sms_service.get_number()
-            telegram.set_phone(phone)
-            telegram.check_phone()
+            try:
+                operation_id, phone = self.sms_service.get_number()
+                telegram.set_phone(phone)
+                telegram.check_phone()
 
-            code = self.sms_service.get_activation_code(operation_id)
-            telegram.check_code(code)
+                code = self.sms_service.get_activation_code(operation_id)
+                telegram.check_code(code)
+            except HandlerException:
+                telegram.kill()
+                return
 
             telegram.set_name()
             telegram.kill()

@@ -2,16 +2,13 @@ import requests
 import abc
 
 
-errors = set('NO_ACTIVATION', 'ERROR_SQL', 'NO_NUMBERS', 'NO_BALANCE', 
-             'BAD_SERVICE', 'BAD_KEY', 'BAD_STATUS', 'BAD_ACTION', 'BANNED')
-
-
 class HandlerException(Exception):
     pass
 
 
 class SmsServiceHandler(metaclass=abc.ABCMeta):
     url = ''
+    errors = set()
 
     def __init__(self, api_key: str, service: str, country_code: int = None):
         self.api_key = api_key
@@ -25,7 +22,7 @@ class SmsServiceHandler(metaclass=abc.ABCMeta):
             # log request error
             print('request_error ' + response.text)
             raise HandlerException
-        if response.text in errors:
+        if response.text in self.errors:
             # log api method error
             print(payload.get('action') + response.text)
             raise HandlerException
@@ -67,6 +64,8 @@ class SmsServiceHandler(metaclass=abc.ABCMeta):
 
 class SmsActivateHandler(SmsServiceHandler):
     url = "http://sms-activate.ru/stubs/handler_api.php"
+    errors = set('NO_ACTIVATION', 'ERROR_SQL', 'NO_NUMBERS', 'NO_BALANCE', 
+                 'BAD_SERVICE', 'BAD_KEY', 'BAD_STATUS', 'BAD_ACTION', 'BANNED')
 
     def get_numbers_count(self) -> int:
         payload = {
